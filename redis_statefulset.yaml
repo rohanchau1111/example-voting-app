@@ -1,0 +1,59 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  labels:
+    app: redis
+  name: redis
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: redis
+  serviceName: "redis"  # Required for StatefulSets to define the network identity
+  template:
+    metadata:
+      labels:
+        app: redis
+    spec:
+      nodeSelector:
+        db: applicationdb
+      containers:
+      - image: redis:alpine
+        name: redis
+        ports:
+        - containerPort: 6379
+          name: redis
+        volumeMounts:
+        - mountPath: /data
+          name: redis-data
+        resources:
+          requests:
+            memory: "256Mi"
+            cpu: "250m"
+          limits:
+            memory: "512Mi"
+            cpu: "500m"
+        readinessProbe:
+          exec:
+            command:
+              - "redis-cli"
+              - "ping"
+          initialDelaySeconds: 20
+          periodSeconds: 5
+        livenessProbe:
+          exec:
+            command:
+              - "redis-cli"
+              - "ping"
+          initialDelaySeconds: 20
+          periodSeconds: 10
+  volumeClaimTemplates:
+  - metadata:
+      name: redis-data
+    spec:
+      accessModes:
+        - ReadWriteOnce
+      resources:
+        requests:
+          storage: 1Gi  # Adjust storage size based on your needs
+      storageClassName: "standard"  # Adjust the storage class if needed

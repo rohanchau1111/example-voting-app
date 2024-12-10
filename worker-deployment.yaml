@@ -14,6 +14,8 @@ spec:
       labels:
         app: worker
     spec:
+      nodeSelector: 
+        backend: backendapp
       containers:
       - image: dockersamples/examplevotingapp_worker
         name: worker
@@ -27,14 +29,12 @@ spec:
         readinessProbe:
           exec:
             command:
-              - "worker-status"
-              - "ping"
-          initialDelaySeconds: 10
+              - "ls"
+          initialDelaySeconds: 20
           periodSeconds: 5
         livenessProbe:
           exec:
             command:
-              - "worker-status"
-              - "ping"
+              - "ls"
           initialDelaySeconds: 30
           periodSeconds: 10

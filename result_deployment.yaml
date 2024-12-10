@@ -14,6 +14,8 @@ spec:
       labels:
         app: result
     spec:
+      nodeSelector: 
+        frontend: ui
       containers:
       - image: dockersamples/examplevotingapp_result
         name: result
@@ -29,13 +31,13 @@ spec:
             cpu: "500m"
         readinessProbe:
           httpGet:
-            path: /health
+            path: /
             port: 80
-          initialDelaySeconds: 10
+          initialDelaySeconds: 20
           periodSeconds: 5
         livenessProbe:
           httpGet:
-            path: /health
+            path: /
             port: 80
-          initialDelaySeconds: 30
+          initialDelaySeconds: 20
           periodSeconds: 10

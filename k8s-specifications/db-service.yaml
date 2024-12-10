@@ -1,15 +1,14 @@
 apiVersion: v1
 kind: Service
 metadata:
+  name: db
   labels:
     app: db
-  name: db
 spec:
-  type: ClusterIP
-  ports:
-  - name: "db-service"
-    port: 5432
-    targetPort: 5432
+  clusterIP: None  # This makes the service headless, so each pod gets its own DNS record.
   selector:
     app: db
-  
+  ports:
+  - port: 5432
+    targetPort: 5432
+    name: postgres
