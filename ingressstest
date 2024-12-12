@@ -1,0 +1,322 @@
+Ingress testing
+
+
+
+kubeadm join 192.168.74.210:6443 --token d33jsr.crcvs3fuk0gr24f5 --discovery-token-ca-cert-hash sha256:0d7047029ee50f415eadcf27f411eb55da336e078a04e6e8c08b092506cdc041
+
+
+
+kubectl apply -f https://raw.githubusercontent.com/rancher/local-path-provisioner/master/deploy/local-path-storage.yaml
+
+kubectl patch svc ingress-nginx-controller -n ingress-nginx -p '{"spec": {"type": "NodePort"}}'
+apiVersion: v1
+kind: Service
+metadata:
+  name: db
+spec:
+  clusterIP: None  # Headless Service
+  selector:
+    app: db
+  ports:
+  - name: postgres
+    port: 5432
+    targetPort: 5432
+
+
+kubectl patch svc ingress-nginx-controller -n ingress-nginx -p '{"spec": {"type": "NodePort"}}'
+kubectl apply -f headless-service.yaml
+
+kubectl apply -f statefulset.yaml
+
+kubectl get pvc
+
+kubectl get pods
+
+
+
+#Setup the ingress controller
+kubectl apply -f https://raw.githubusercontent.com/kubernetes/ingress-nginx/main/deploy/static/provider/cloud/deploy.yaml
+
+------------------- in a single -----------------------
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: vote-result-ingress
+  annotations:
+    nginx.ingress.kubernetes.io/rewrite-target: /
+spec:
+  rules:
+  - host: myapp.example.com  # Replace with your domain or IP
+    http:
+      paths:
+      - path: /vote
+        pathType: Prefix
+        backend:
+          service:
+            name: vote
+            port:
+              number: 80
+      - path: /result
+        pathType: Prefix
+        backend:
+          service:
+            name: result
+            port:
+              number: 80
+
+--------------------on seperate host --------------------------------
+
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: vote-result-ingress
+spec:
+  rules:
+  - host: vote.example.com
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: vote
+            port:
+              number: 80
+  - host: result.example.com
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: result
+            port:
+              number: 80
+
+
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: vote-result-ingress
+spec:
+  rules:
+  - host: vote.example.com
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: vote
+            port:
+              number: 80
+  - host: result.example.com
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: result
+            port:
+              number: 80
+
+----------------- kubectl apply -f ingress.yaml -----------------
+kubectl get svc -n ingress-nginx
+
+
+Access the Microservices:
+
+If using paths:
+http://<external-ip>/vote
+http://<external-ip>/result
+If using domains, configure DNS records pointing to the external IP:
+http://vote.example.com
+http://result.example.com
+=================
+
+FOR HTTPS ---------------------------->>>>>>>>>>>>>>>>>>>>
+
+To use Ingress for your vote and result microservices, follow these steps. Each microservice will be exposed via HTTP on specific paths (e.g., /vote and /result) or domains (e.g., vote.example.com and result.example.com).
+
+Step 1: Deploy the Vote and Result Microservices
+Ensure the microservices vote and result are deployed and accessible via their respective Kubernetes Services.
+
+Example Service for Vote:
+ 
+apiVersion: v1
+kind: Service
+metadata:
+  name: vote
+spec:
+  selector:
+    app: vote
+  ports:
+  - protocol: TCP
+    port: 80
+    targetPort: 8080  # Replace with the port your app listens on
+  type: ClusterIP
+
+
+Example Service for Result:
+ 
+apiVersion: v1
+kind: Service
+metadata:
+  name: result
+spec:
+  selector:
+    app: result
+  ports:
+  - protocol: TCP
+    port: 80
+    targetPort: 8080  # Replace with the port your app listens on
+  type: ClusterIP
+
+
+Apply these manifests: 
+
+
+kubectl apply -f vote-service.yaml
+kubectl apply -f result-service.yaml
+
+Step 2: Install an Ingress Controller
+
+If you don’t already have an ingress controller, deploy one (e.g., NGINX Ingress Controller):
+
+\
+kubectl apply -f https://raw.githubusercontent.com/kubernetes/ingress-nginx/main/deploy/static/provider/cloud/deploy.yaml
+
+Step 3: Create an Ingress Resource
+Single Host with Path-Based Routing
+
+This setup routes traffic to /vote for the vote service and /result for the result service.
+
+
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: vote-result-ingress
+  annotations:
+    nginx.ingress.kubernetes.io/rewrite-target: /
+spec:
+  rules:
+  - host: myapp.example.com  # Replace with your domain or IP
+    http:
+      paths:
+      - path: /vote
+        pathType: Prefix
+        backend:
+          service:
+            name: vote
+            port:
+              number: 80
+      - path: /result
+        pathType: Prefix
+        backend:
+          service:
+            name: result
+            port:
+              number: 80
+
+
+Separate Hosts for Each Service
+If you want separate domains for the services, use:
+
+
+
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: vote-result-ingress
+spec:
+  rules:
+  - host: vote.example.com
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: vote
+            port:
+              number: 80
+  - host: result.example.com
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: result
+            port:
+              number: 80
+Apply the Ingress resource:
+
+
+
+kubectl apply -f ingress.yaml
+
+Step 4: Access the Application
+Get the External IP of the Ingress Controller:
+
+
+
+kubectl get svc -n ingress-nginx
+Look for the LoadBalancer or NodePort IP under ingress-nginx-controller.
+
+Access the Microservices:
+
+If using paths:
+http://<external-ip>/vote
+http://<external-ip>/result
+If using domains, configure DNS records pointing to the external IP:
+http://vote.example.com
+http://result.example.com
+Optional: Add TLS for HTTPS
+To secure the Ingress with HTTPS:
+
+Create a TLS Secret:
+
+
+kubectl create secret tls my-tls-secret --cert=/path/to/cert.pem --key=/path/to/key.pem
+
+Update the Ingress Resource:
+
+
+spec:
+  tls:
+  - hosts:
+    - myapp.example.com
+    secretName: my-tls-secret
+  rules:
+  - host: myapp.example.com
+    http:
+      paths:
+      - path: /vote
+        pathType: Prefix
+        backend:
+          service:
+            name: vote
+            port:
+              number: 80
+      - path: /result
+        pathType: Prefix
+        backend:
+          service:
+            name: result
+            port:
+              number: 80
+Apply the updated manifest:
+
+
+
+kubectl apply -f ingress-with-tls.yaml
+
+Check the Ingress resource:
+
+
+kubectl get ingress
+Test the routes with a browser or curl:
+curl http://<external-ip>/vote
+curl http://<external-ip>/result
