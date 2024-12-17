@@ -16,7 +16,7 @@ spec:
         app: redis
     spec:
       nodeSelector:
-        db: applicationdb  # Ensure the node has the required label
+        db: applicationdb
       containers:
       - image: redis:alpine
         name: redis
@@ -56,4 +56,4 @@ spec:
       resources:
         requests:
           storage: 1Gi  # Adjust storage size based on your needs
-      storageClassName: "local-storage"  # Use the local storage class
+      storageClassName: "local-storage"  # Adjust the storage class if needed
