@@ -16,7 +16,7 @@ spec:
         app: db
     spec:
       nodeSelector: 
-        db: applicationdb
+        db: applicationdb  # Ensure the node has the required label
       containers:
       - image: postgres:15-alpine
         name: postgres
@@ -67,4 +67,4 @@ spec:
       resources:
         requests:
           storage: 10Gi  # Adjust size based on your needs
-      storageClassName: "standard"  # Specify the storage class, if needed
+      storageClassName: "local-storage"  # Use the local storage class
