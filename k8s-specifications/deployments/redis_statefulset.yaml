@@ -9,51 +9,27 @@ spec:
   selector:
     matchLabels:
       app: redis
-  serviceName: "redis"  # Required for StatefulSets to define the network identity
+  serviceName: "redis"
   template:
     metadata:
       labels:
         app: redis
     spec:
       nodeSelector:
-        db: applicationdb
+        kubernetes.io/hostname: k8sworker2  # Ensure this matches the node where the PV is located
       containers:
-      - image: redis:alpine
-        name: redis
-        ports:
-        - containerPort: 6379
+        - image: redis:alpine
           name: redis
-        volumeMounts:
-        - mountPath: /data
-          name: redis-data
-        resources:
-          requests:
-            memory: "256Mi"
-            cpu: "250m"
-          limits:
-            memory: "512Mi"
-            cpu: "500m"
-        readinessProbe:
-          exec:
-            command:
-              - "redis-cli"
-              - "ping"
-          initialDelaySeconds: 20
-          periodSeconds: 5
-        livenessProbe:
-          exec:
-            command:
-              - "redis-cli"
-              - "ping"
-          initialDelaySeconds: 20
-          periodSeconds: 10
-  volumeClaimTemplates:
-  - metadata:
-      name: redis-data
-    spec:
-      accessModes:
-        - ReadWriteOnce
-      resources:
-        requests:
-          storage: 1Gi  # Adjust storage size based on your needs
-      storageClassName: "local-storage"  # Adjust the storage class if needed
+          volumeMounts:
+            - mountPath: /data
+              name: redis-data
+      volumeClaimTemplates:
+        - metadata:
+            name: redis-data
+          spec:
+            accessModes:
+              - ReadWriteOnce
+            resources:
+              requests:
+                storage: 1Gi
+            storageClassName: local-storage
