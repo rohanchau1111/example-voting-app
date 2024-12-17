@@ -9,27 +9,62 @@ spec:
   selector:
     matchLabels:
       app: db
-  serviceName: "db"
+  serviceName: "db"  # Required for StatefulSets to define the network identity
   template:
     metadata:
       labels:
         app: db
     spec:
-      nodeSelector:
+      nodeSelector: 
         kubernetes.io/hostname: k8sworker1  # Ensure this matches the node where the PV is located
       containers:
         - image: postgres:15-alpine
           name: postgres
+          env:
+            - name: POSTGRES_USER
+              value: postgres
+            - name: POSTGRES_PASSWORD
+              value: postgres
+          ports:
+            - containerPort: 5432
+              name: postgres
           volumeMounts:
             - mountPath: /var/lib/postgresql/data
               name: db-data
-      volumeClaimTemplates:
-        - metadata:
-            name: db-data
-          spec:
-            accessModes:
-              - ReadWriteOnce
-            resources:
-              requests:
-                storage: 10Gi
-            storageClassName: local-storage
+          resources:
+            requests:
+              memory: "512Mi"
+              cpu: "500m"
+            limits:
+              memory: "1Gi"
+              cpu: "1"
+          readinessProbe:
+            exec:
+              command:
+                - "pg_isready"
+                - "-U"
+                - "postgres"
+            initialDelaySeconds: 30
+            periodSeconds: 5
+            timeoutSeconds: 3
+            failureThreshold: 3
+          livenessProbe:
+            exec:
+              command:
+                - "pg_isready"
+                - "-U"
+                - "postgres"
+            initialDelaySeconds: 60
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 3
+  volumeClaimTemplates:  # Correct placement of volumeClaimTemplates
+    - metadata:
+        name: db-data
+      spec:
+        accessModes:
+          - ReadWriteOnce
+        resources:
+          requests:
+            storage: 10Gi
+        storageClassName: local-storage  # Ensure this matches the StorageClass defined in your PV
