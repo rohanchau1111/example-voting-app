@@ -60,28 +60,33 @@ sleep 2
 sudo systemctl is-active containerd
 sleep 2
 
-# 5. Install Kubernetes Components (1.29.0):
+# 5. Add Kubernetes APT Repository
+echo "Setting up Kubernetes APT repository..."
+curl -fsSL https://packages.cloud.google.com/apt/doc/apt-key.gpg | sudo tee /etc/apt/trusted.gpg.d/kubernetes.asc
+sleep 2
+
+echo "deb https://apt.kubernetes.io/ kubernetes-xenial main" | sudo tee /etc/apt/sources.list.d/kubernetes.list
+sleep 2
+
+# Update package list
+sudo apt-get update
+sleep 2
+
+# 6. Install Kubernetes Components (kubelet, kubeadm, kubectl) version 1.29.0:
 echo "Installing Kubernetes components (kubelet, kubeadm, kubectl) version 1.29.0..."
-sudo apt-get update
-sleep 2
-
-sudo apt-get install -y apt-transport-https ca-certificates curl gpg
-sleep 2
-
-curl -fsSL https://pkgs.k8s.io/core:/stable:/v1.29/deb/Release.key | sudo gpg --dearmor -o /etc/apt/keyrings/kubernetes-apt-keyring.gpg
-sleep 2
-
-echo 'deb [signed-by=/etc/apt/keyrings/kubernetes-apt-keyring.gpg] https://pkgs.k8s.io/core:/stable:/v1.29/deb/ /' | sudo tee /etc/apt/sources.list.d/kubernetes.list
-
-sudo apt-get update
-sleep 2
-
-# Install the specific version (1.29.0)
 sudo apt-get install -y kubelet=1.29.0-00 kubeadm=1.29.0-00 kubectl=1.29.0-00
 sleep 2
 
-# Mark Kubernetes packages to hold at version 1.29.0
+# 7. Mark Kubernetes packages to hold at version 1.29.0
+echo "Marking Kubernetes packages on hold to prevent automatic upgrades..."
 sudo apt-mark hold kubelet kubeadm kubectl
 sleep 2
 
-echo "Kubernetes 1.29.0 setup completed."
+# 8. Verify Kubernetes installation
+echo "Verifying Kubernetes installation..."
+kubelet --version
+kubeadm version
+kubectl version --client
+
+# 9. Completion Message
+echo "Kubernetes 1.29.0 setup completed successfully."
