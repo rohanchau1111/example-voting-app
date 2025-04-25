@@ -1,0 +1,118 @@
+frontend:
+  replicas: 3
+  image:
+    repository: dockersamples/examplevotingapp_vote #  
+    tag: latest
+    pullPolicy: Always
+  nodeSelector: ui
+  resources:
+    requests:
+      memory: "256Mi"
+      cpu: "200m"
+    limits:
+      memory: "512Mi"
+      cpu: "500m"
+  probes:
+     readiness:
+       path: "/"
+       port: 80
+       initialDelaySeconds: 30
+       periodSeconds: 5
+     liveness:
+       path: "/"
+       port: 80
+       initialDelaySeconds: 30
+       periodSeconds: 10
+  service: 
+      name: "vote-service"
+      type: NodePort     
+frontends: {}
+
+
+result:
+  replicas: 2
+  image:
+    repository: dockersamples/examplevotingapp_result #<your-public-frontend-repo-url>
+    tag: latest
+    pullPolicy: Always
+  nodeSelector: ui
+  resources:
+    requests:
+      memory: "256Mi"
+      cpu: "200m"
+    limits:
+      memory: "512Mi"
+      cpu: "500m"
+  probes:
+     readiness:
+       path: "/"
+       port: 80
+       initialDelaySeconds: 30
+       periodSeconds: 5
+     liveness:
+       path: "/"
+       port: 80
+       initialDelaySeconds: 30
+       periodSeconds: 10
+  service: 
+      name: "result-service"
+      type: NodePort  
+results: {}
+
+worker:
+  replicas: 2
+  image:
+    repository: dockersamples/examplevotingapp_worker #<your-public-frontend-repo-url>
+    tag: latest
+    pullPolicy: Always
+  nodeSelector: backendapp
+  resources:
+    requests:
+      memory: "256Mi"
+      cpu: "200m"
+    limits:
+      memory: "512Mi"
+      cpu: "500m"
+  probes:
+     readiness:
+       path: "/"
+       port: 80
+       initialDelaySeconds: 30
+       periodSeconds: 5
+     liveness:
+       path: "/"
+       port: 80
+       initialDelaySeconds: 30
+       periodSeconds: 10
+workers: {}
+
+db:
+  replicas: 2
+  image:
+    repository: postgres
+    tag: 15-alpine #<your-public-frontend-repo-url>
+    pullPolicy: Always
+  nodeSelector: applicationdb
+dbs: {}
+
+redis:
+  replicas: 2
+  image:
+    repository: redis
+    tag: alpine #<your-public-frontend-repo-url>
+    pullPolicy: Always
+rediss: {}
+
+
+serviceAccount:
+    create: false
+
+ingress:
+  enabled: false
+
+autoscaling:
+  enabled: false
+
+service:
+  port: 80
+  type: NodePort

@@ -3,11 +3,11 @@ kind: Service
 metadata:
   labels:
     app: result
-  name: resultclear
+  name: result
 spec:
-  type: NodePort
+  type: {{ .Values.result.service.type }}
   ports:
-  - name: "result-service"
+  - name: {{ .Values.result.service.name }}
     port: 8081
     targetPort: 80
     nodePort: 31001

@@ -1,0 +1,41 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: worker
+  name: worker
+spec:
+  replicas: {{ .Values.worker.replicas }}
+  selector:
+    matchLabels:
+      app: worker
+  template:
+    metadata:
+      labels:
+        app: worker
+    spec:
+      nodeSelector:
+        backend: {{ .Values.worker.nodeSelector }}
+      containers:
+        - name: worker
+          image: "{{ .Values.worker.image.repository }}:{{ .Values.worker.image.tag }}"
+          imagePullPolicy: "{{ .Values.worker.image.pullPolicy }}"
+          resources:
+            requests:
+              memory: {{ .Values.worker.resources.requests.memory }}
+              cpu: {{ .Values.worker.resources.requests.cpu }}
+            limits:
+              memory:  {{ .Values.worker.resources.limits.memory}}
+              cpu: {{ .Values.worker.resources.limits.cpu }}
+          readinessProbe:
+            exec:
+              command:
+                - "ls"
+            initialDelaySeconds: {{ .Values.worker.probes.readiness.initialDelaySeconds }}
+            periodSeconds: {{ .Values.worker.probes.readiness.periodSeconds }}
+          livenessProbe:
+            exec:
+              command:
+                - "ls"
+            initialDelaySeconds: {{ .Values.worker.probes.liveness.initialDelaySeconds }}
+            periodSeconds: {{ .Values.worker.probes.liveness.periodSeconds }}

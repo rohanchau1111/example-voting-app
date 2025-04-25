@@ -1,0 +1,44 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: result
+  name: result
+spec:
+  replicas: {{ .Values.result.replicas }}
+  selector:
+    matchLabels:
+      app: result
+  template:
+    metadata:
+      labels:
+        app: result
+    spec:
+      nodeSelector:
+        frontend: "{{ .Values.result.nodeSelector }}"
+      containers:
+        - name: result
+          image: "{{ .Values.result.image.repository }}:{{ .Values.result.image.tag }}"
+          imagePullPolicy: "{{ .Values.result.image.pullPolicy }}"
+          ports:
+            - containerPort: 80
+              name: result
+          resources:
+            requests:
+              memory: {{ .Values.result.resources.requests.memory }}
+              cpu: {{ .Values.result.resources.requests.cpu }}
+            limits:
+              memory:  {{ .Values.result.resources.limits.memory}}
+              cpu: {{ .Values.result.resources.limits.cpu }}
+          readinessProbe:
+            httpGet:
+              path: {{ .Values.result.probes.readiness.path }}
+              port: {{ .Values.result.probes.readiness.port }}
+            initialDelaySeconds: {{ .Values.result.probes.readiness.initialDelaySeconds }}
+            periodSeconds: {{ .Values.result.probes.readiness.periodSeconds }}
+          livenessProbe:
+            httpGet:
+              path: {{ .Values.result.probes.liveness.path }}
+              port: {{ .Values.result.probes.liveness.port }}
+            initialDelaySeconds: {{ .Values.result.probes.liveness.initialDelaySeconds }}
+            periodSeconds: {{ .Values.result.probes.liveness.periodSeconds }}

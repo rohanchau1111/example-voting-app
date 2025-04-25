@@ -18,8 +18,9 @@ spec:
       nodeSelector:
         db: applicationdb  # Ensure this matches the node where the PV is located
       containers:
-        - image: redis:alpine
-          name: redis
+        - name: redis
+          image: "{{ .Values.redis.image.repository }}"
+          imagePullPolicy: {{ .Values.redis.image.pullPolicy }}
           ports:
             - containerPort: 6379
               name: redis

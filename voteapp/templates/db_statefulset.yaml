@@ -5,7 +5,7 @@ metadata:
     app: db
   name: db
 spec:
-  replicas: 1
+  replicas: {{ .Values.db.replicas }}
   selector:
     matchLabels:
       app: db
@@ -15,11 +15,12 @@ spec:
       labels:
         app: db
     spec:
-      nodeSelector: 
-        db: applicationdb # Ensure this matches the node where the PV is located
+      nodeSelector:
+         db: "{{ .Values.db.nodeSelector }}"
       containers:
-        - image: postgres:15-alpine
-          name: postgres
+        - name: postgres
+          image: "{{ .Values.db.image.repository }}:{{ .Values.db.image.tag }}"
+          imagePullPolicy: "{{ .Values.db.image.pullPolicy }}"
           env:
             - name: POSTGRES_USER
               value: postgres
@@ -58,7 +59,7 @@ spec:
             periodSeconds: 10
             timeoutSeconds: 5
             failureThreshold: 3
-  volumeClaimTemplates:  # Correct placement of volumeClaimTemplates
+  volumeClaimTemplates:
     - metadata:
         name: db-data
       spec:
@@ -67,4 +68,4 @@ spec:
         resources:
           requests:
             storage: 10Gi
-        storageClassName: local-storage  # Ensure this matches the StorageClass defined in your PV
+        storageClassName: local-storage
