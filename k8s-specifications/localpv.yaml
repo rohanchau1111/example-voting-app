@@ -11,7 +11,7 @@ spec:
   persistentVolumeReclaimPolicy: Retain
   storageClassName: local-storage
   local:
-    path: /mnt/disks/azure-disk   # Path to the local storage on the node
+    path: /mnt/disks/db-local-storage/db-0   # Path to the local storage on the node
   nodeAffinity:
     required:
       nodeSelectorTerms:
@@ -19,8 +19,31 @@ spec:
             - key: kubernetes.io/hostname
               operator: In
               values:
-                - k8sworker1   # Replace with your node name
+                - test-m02   # Replace with your node name
 
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: redis-local-pv
+spec:
+  capacity:
+    storage: 1Gi
+  volumeMode: Filesystem
+  accessModes:
+    - ReadWriteOnce
+  persistentVolumeReclaimPolicy: Retain
+  storageClassName: local-storage
+  local:
+    path: /mnt/disks/redis-local-storage/redis-0  # Ensure this path exists on the node
+  nodeAffinity:
+    required:
+      nodeSelectorTerms:
+        - matchExpressions:
+            - key: kubernetes.io/hostname
+              operator: In
+              values:
+                - test-m02  # Replace with the actual node name where Redis data is stored
 ---
 apiVersion: v1
 kind: PersistentVolumeClaim
@@ -33,3 +56,16 @@ spec:
     requests:
       storage: 10Gi
   storageClassName: local-storage  
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: redis-data-claim
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 1Gi  # Match the size of the PV
+  storageClassName: local-storage  # Ensure it matches the PV's storageClassName
+

@@ -1,0 +1,33 @@
+
+vote:
+  replicaCount: 1
+  image:
+    repository: dockersamples/examplevotingapp_vote
+    pullPolicy: IfNotPresent
+    tag: latest
+
+  resources:
+    requests:
+      memory: "256Mi"
+      cpu: "200m"
+    limits:
+      memory: "512Mi"
+      cpu: "500m"
+
+  readinessProbe:
+    path: /
+    port: 80
+    initialDelaySeconds: 30
+    periodSeconds: 5
+
+  livenessProbe:
+    path: /
+    port: 80
+    initialDelaySeconds: 30
+    periodSeconds: 10
+  
+  service:
+    type: NodePort  # Service type (NodePort by default)
+    port: 8080  # Port that the service will expose internally
+    nodePort: 31000  
+

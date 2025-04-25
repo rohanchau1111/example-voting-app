@@ -15,7 +15,7 @@ spec:
       labels:
         app: db
     spec:
-      nodeSelector:
+      nodeSelector: 
         db: applicationdb # Ensure this matches the node where the PV is located
       containers:
         - image: postgres:15-alpine
