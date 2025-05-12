@@ -87,7 +87,7 @@ worker:
 workers: {}
 
 db:
-  replicas: 2
+  replicas: 1
   image:
     repository: postgres
     tag: 15-alpine #<your-public-frontend-repo-url>
@@ -96,7 +96,7 @@ db:
 dbs: {}
 
 redis:
-  replicas: 2
+  replicas: 1
   image:
     repository: redis
     tag: alpine #<your-public-frontend-repo-url>
